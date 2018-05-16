@@ -1,0 +1,89 @@
+*** Settings ***
+Suite Setup       Login_yixun    Autotest    123456
+Suite Teardown    Close All Browsers
+Library           Selenium2Library
+Resource          ../PublicKW/Login.txt
+Resource          ../PublicRC/Comment_Home.txt
+Resource          ../PublicKW/CommentKW.txt
+Library           SendKeys
+Resource          ../PublicRC/Comment_EditRecognition.txt
+
+*** Test Cases ***
+001.名称修改
+    [Documentation]    关键字说明： 2017-10-12 \ author：李琼
+    ...
+    ...    1.重命名作品名称规则为：modifiedname+随机数；
+    ...    2.上传图片来进行搜索，通过图片的id值判断是否搜索成功；
+    ...    3.编辑该作品名称，退出后，通过修改的名称来搜索，校验是否修改成功；
+    #定义一个随机数，后面的作品加随机数命名
+    ${random}    Evaluate    random.randint(0, 10000)    modules=random
+    #进入【编辑识别信息】
+    EnterEditHome
+    #修改作品名称
+    log    清空作品名称输入框，再重新输入
+    Clear Element Text    xpath=//input[@name='resource_tag_title']
+    sleep    1s
+    log    输入名称
+    Input Text    xpath=//input[@name='resource_tag_title']    modifiedname${random}
+    #退出编辑
+    sleep    1s
+    Click Element    ${ExitEditorButton}
+    Wait Until Keyword Succeeds    3x    2s    Element Should Be Visible    ${CreateNewAR}
+    #搜索修改名称后的作品是否存在
+    log    等待输入框出现
+    Wait Until Element Is Enabled    ${HomeSearch}    10s
+    Input Text    ${HomeSearch}    modifiedname${random}
+    sleep    1s
+    Click Button    ${HomeSearchButton}
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    3x    3s    Wait Until Page Contains Element    //*[@id="mainNode"]/div/div[2]/div[1]/div[2]/div/div[1]/div[2]/div[1]/span[text()="modifiedname${random}"]
+    Run Keyword If    ${status}==True    log    恭喜~修改作品名称后搜索成功！
+    ...    ELSE    fail    很遗憾~搜索作品不存在！
+    #清空输入框后点击搜索
+    Clear Element Text    ${HomeSearch}
+    sleep    1s
+    Click Button    ${HomeSearchButton}
+    [Teardown]
+
+002.分类修改
+    [Documentation]    关键字说明： 2017-10-12 \ author：李琼
+    ...
+    ...    1.登录幻视首页后，新建一个分类，选择一个作品，移动至新建的分类；
+    ...    2.修改作品分类后，退出编辑，选择分类查看作品是否存在；
+    ...    3.运行完成后，删除新建的分类；
+    #创建作品分类
+    ${NewCategoryName}    CreateNewCategory
+    #进入【编辑识别信息】
+    EnterEditHome
+    #修改作品分类
+    Click Element    xpath=//select[@name="cate_id"]
+    Wait Until Element Is Enabled    xpath=//option[text()="${NewCategoryName}"]    10s
+    Click Element    xpath=//option[text()="${NewCategoryName}"]
+    #退出编辑
+    sleep    1s
+    Click Element    ${ExitEditorButton}
+    Wait Until Keyword Succeeds    3x    2s    Element Should Be Visible    ${CreateNewAR}
+    #选择分类
+    Click Element    xpath=//a[@class="editor-name" and text()="${NewCategoryName}"]
+    #判定作品是否出现
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    3x    3s    Wait Until Page Contains Element    //*[@id="mainNode"]/div/div[2]/div[1]/div[2]/div/div[1]/a[contains(@href,"59ddcf78d2a4d900070c1318")]
+    Run Keyword If    ${status}==True    log    该作品存在！
+    ...    ELSE    fail    很遗憾~作品不存在！
+    [Teardown]    DeleteHomeCategory    ${NewCategoryName}    # 恢复环境，删除新建的分类
+
+03.内容简介
+    [Documentation]    关键字说明： 2017-10-12 \ author：李琼
+    ...
+    ...    01.校验内容简介输入规则；
+    #进入【编辑识别信息】
+    EnterEditHome
+    #对内容简介进行修改
+    log    简介内容长度不能超过200！
+    Clear Element Text    xpath=//textarea[@name="summary"]    #清空输入框
+    sleep    1s
+    Input Text    xpath=//textarea[@name="summary"]    简介内容长度不能超过200！简介内容长度不能超过200！简介内容长度不能超过200！简介内容长度不能超过200！简介内容长度不能超过200！简介内容长度不能超过200！简介内容长度不能超过200！简介内容长度不能超过200！简介内容长度不能超过200！简介内容长度不能超过200！简介内容长度不能超过200！简介内容长度不能超过200！简介内容长度不能超过200！简介内容长度不能超过200！简介内容长度不能超过200！111
+    #关闭弹出的alert框
+    log    超过200个字符会弹出提示框
+    ${mes}    Confirm Action
+    Choose Ok On Next Confirmation    #点击确定
+    sleep    2s
+    [Teardown]

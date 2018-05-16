@@ -1,0 +1,164 @@
+*** Settings ***
+Suite Setup       Login_yixun    Autotest    123456
+Suite Teardown    Close All Browsers
+Library           Selenium2Library
+Resource          ../PublicKW/Login.txt
+Resource          ../PublicRC/Comment_Home.txt
+Resource          ../PublicKW/CommentKW.txt
+Resource          ../PublicRC/Comment_MemberCentre.txt
+Library           SendKeys
+Library           Collections
+
+*** Test Cases ***
+001.头像上传
+    [Documentation]    关键字说明： 2017-10-24 \ author：李琼
+    ...
+    ...    1.先判断是否在用户信息界面，不是则跳转过去再操作；
+    ...    2.上传用户头像，上传前判断存在的是哪张图片，然后上传另外一张；
+    #进入【用户信息】界面
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    5x    2s    Element Should Be Visible    ${MC_ConfirmBtn}
+    Run Keyword If    ${status}==False    Run Keyword    EnterUserInformation
+    #点击头像
+    Click Element    ${EditImgIcon}
+    sleep    1s
+    #判断存在的头像是哪一张，然后上传另一张
+    Wait Until Element Is Enabled    ${AddImgInfo}    30s    #通过提交按钮判断弹出框是否出现
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    5x    2s    Element Should Be Visible    //span[@class="cropper-view-box"]/img[@src="http://yixunfiles-ali.yixun.arhieason.com/8a76ebeb6b66e48fb4b915c5685c9272_jpg.jpg"]
+    Run Keyword If    ${status}==True    Run Keywords    Click Element    ${AddImgInfo}
+    ...    AND    UploadLocalImg    ${ServerFilePath}    10    ${FileSuffix_jpg}    ${Img10Id}
+    ...    ELSE    Run Keywords    Click Element    ${AddImgInfo}
+    ...    AND    UploadLocalImg    ${ServerFilePath}    101    ${FileSuffix_jpg}    ${Img101Id}
+
+002.升级或续期链接跳转
+    [Documentation]    关键字说明： 2017-10-25 \ author：李琼
+    ...
+    ...    1.点击升级或续期按钮，重新打开一个窗口，通过select window 选择新的窗口，通过判定新页面的元素是否出现，来校验是否跳转成功；
+    #进入【用户信息】界面
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    5x    2s    Element Should Be Visible    ${MC_ConfirmBtn}
+    Run Keyword If    ${status}==False    Run Keyword    EnterUserInformation
+    #点击升级或续期按钮, 会重新打开一个窗口
+    Click Element    ${UpgradeRenew}
+    #获得窗口的title
+    ${titles}    Get Window Titles
+    ${titles2}    Get From List    ${titles}    1
+    ${titles1}    Get From List    ${titles}    0
+    #切换到第二个窗口
+    Select Window    title=${titles2}
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    10x    3s    Element Should Be Visible    ${MemberService}
+    Run Keyword If    ${status}==True    log    打开幻视AR云创建成功！
+    ...    ELSE    fail    跳转失败，请定位原因
+    #返回第一个窗口，并校验
+    Select Window    title=${titles1}
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    10x    3s    Element Should Be Visible    ${MC_ConfirmBtn}
+    Run Keyword If    ${status}==True    log    跳转到会员中心页面成功！
+    ...    ELSE    fail    跳转失败，请定位原因
+
+003.公开信息-品牌填写
+    [Documentation]    关键字说明： 2017-10-26 \ author：李琼
+    ...
+    ...    1.品牌输入字符校验，限制12个中文字符，24个英文字符；
+    #进入【用户信息】界面
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    5x    2s    Element Should Be Visible    ${MC_ConfirmBtn}
+    Run Keyword If    ${status}==False    Run Keyword    EnterUserInformation
+    #编辑品牌信息
+    Click Element    //div[@class="icon-edit-info"]
+    Clear Element Text    //input[@id="brand"]    #清空品牌输入框
+    Input Text    //input[@id="brand"]    123456789adsfgh123456#%$^%$^$    #输入内容超过24个字符
+    Wait Until Page Contains    品牌名字限制12个中文字符（24个英文字符）    5s
+    Clear Element Text    //input[@id="brand"]    #清空品牌输入框
+    Input Text    //input[@id="brand"]    北京易讯理想科技有限公司11    #输入内容超过12个中文字符
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    3x    2s    Wait Until Page Contains    品牌名字限制12个中文字符（24个英文字符）
+    ...    #输入内容超过12个中文字符
+    Run Keyword If    ${status}==True    Run Keyword    Click Element    //div[@class="confirmBtn" and text()="保存"]
+    ...    ELSE    fail    没有出现提示，请定位！
+    sleep    1s
+    Wait Until Element Is Enabled    //input[@value="北京易讯理想科技有限公司"]    30s    #等待30s，校验品牌名称是否出现
+
+004.公开信息-地址填写
+    [Documentation]    关键字说明： 2017-10-26 \ author：李琼
+    ...
+    ...    1.地址信息输入字符校验，50个字符限制；
+    #进入【用户信息】界面
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    5x    2s    Element Should Be Visible    ${MC_ConfirmBtn}
+    Run Keyword If    ${status}==False    Run Keyword    EnterUserInformation
+    #编辑品牌信息
+    Click Element    //div[@class="icon-edit-info"]
+    Clear Element Text    //input[@id="address"]    #清空输入框
+    Input Text    //input[@id="address"]    123456789adsfgh123456#%$^%$^$1231546548784121231234564sfcdsgsdgsdgsdgewefqw    #输入内容超过50个字符
+    Wait Until Page Contains    地址字数超出限制啦～    5s
+    Clear Element Text    //input[@id="address"]    #清空输入框
+    Input Text    //input[@id="address"]    四川省成都市武侯区天府大道中段四川省成都市武侯区天府大道中段四川省成都市武侯区天府大道中段四川省成都市武侯区    #输入内容超过50个中文字符
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    3x    2s    Wait Until Page Contains    地址字数超出限制啦～
+    Run Keyword If    ${status}==True    Run Keyword    Click Element    //div[@class="confirmBtn" and text()="保存"]
+    ...    ELSE    fail    没有出现提示，请定位！
+    sleep    1s
+    Comment    Wait Until Element Is Enabled    //input[@value="四川省成都市武侯区天府大道中段四川省成都市武侯区天府大道中段四川省成都市武侯区天府大道中段四川省成都"]    30s    #等待30s，校验地址名称是否出现
+    Wait Until Element Is Enabled    //input[contains(@value,"四川省成都市武侯区天府大道中段")]    30s    #等待30s，校验地址名称是否出现
+
+005.公开信息-电话填写
+    #进入【用户信息】界面
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    5x    2s    Element Should Be Visible    ${MC_ConfirmBtn}
+    Run Keyword If    ${status}==False    Run Keyword    EnterUserInformation
+    #编辑品牌信息
+    Click Element    //div[@class="icon-edit-info"]
+    Clear Element Text    //input[@id="phone"]    #清空输入框
+    Input Text    //input[@id="phone"]    12345678945612311111223    #输入内容超过20位
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    3x    2s    Wait Until Page Contains    电话号码最长20位
+    Run Keyword If    ${status}==True    Run Keyword    Click Element    //div[@class="confirmBtn" and text()="保存"]
+    ...    ELSE    fail    没有出现提示，请定位！
+    sleep    1s
+    Wait Until Element Is Enabled    //input[@value="12345678945612311111"]    30s    #等待30s，校验地址名称是否出现
+
+006.公开信息-品牌介绍填写
+    [Documentation]    2017-11-08 author 李琼
+    ...
+    ...    1.输入品牌介绍超过200字，检验是否有限制提示出现，再校验输入内容是否保存成功；
+    #进入【用户信息】界面
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    5x    2s    Element Should Be Visible    ${MC_ConfirmBtn}
+    Run Keyword If    ${status}==False    Run Keyword    EnterUserInformation
+    #编辑品牌信息
+    Click Element    //div[@class="icon-edit-info"]
+    Clear Element Text    //textarea[@id="brand_profile"]    #清空输入框
+    Input Text    //textarea[@id="brand_profile"]    1BeijingYixXunIdealTechnology,2BeijingYixXunIdealTechnology,3BeijingYixXunIdealTechnology,4BeijingYixXunIdealTechnology,5BeijingYixXunIdealTechnology,6BeijingYixXunIdealTechnology,7BeijingYixXunIdealTechnology    #输入超过200个字内容
+    #校验是否是输入内容限制是否200字
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    3x    2s    Wait Until Page Contains    品牌介绍限制200字
+    Run Keyword If    ${status}==True    Run Keyword    Click Element    //div[@class="confirmBtn" and text()="保存"]
+    ...    ELSE    fail    保存失败，请定位！
+    sleep    1s
+    Wait Until Page Contains    1BeijingYixXunIdealTechnology,2BeijingYixXunIdealTechnology,3BeijingYixXunIdealTechnology,4BeijingYixXunIdealTechnology,5BeijingYixXunIdealTechnology,6BeijingYixXunIdealTechnology,7BeijingYixXunIdealT    30s    #等待30s，校验介绍内容是否出现
+
+007.头像上传图片大于2M
+    [Documentation]    2017-11-08 author 李琼
+    ...
+    ...    1.校验上传超过2M的图片是否能成功；
+    #进入【用户信息】界面
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    5x    2s    Element Should Be Visible    ${MC_ConfirmBtn}
+    Run Keyword If    ${status}==False    Run Keyword    EnterUserInformation
+    #点击头像
+    Click Element    ${EditImgIcon}
+    sleep    1s
+    #等待上传头像按钮出现
+    Wait Until Element Is Enabled    ${AddImgInfo}    30s
+    Click Element    ${AddImgInfo}    #点击上传头像按钮
+    #上传本地头像大于2M
+    UploadLocalFile    ${ServerFilePath}    2.36M    .png
+    #校验图片是否上传成功
+    ${status}    Run Keyword And Return Status    Wait Until Page Contains    上传文件不能大于2M    10s
+    Run Keyword If    ${status}==True    Run Keyword    Click Element    //span[@class="icon-close" ]
+    ...    ELSE    fail    大于2M的文件上传成功，有问题！
+    #等待升级或续期按钮，说明关闭弹窗成功 出现
+    Wait Until Page Contains Element    ${MC_ConfirmBtn}    10s
+
+008.头像上传格式为gif、bmp
+    [Documentation]    2017-11-08 author 李琼
+    ...
+    ...    1.校验上传gif、bmp格式的图片是否成功；
+    #进入【用户信息】界面
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    5x    2s    Element Should Be Visible    ${MC_ConfirmBtn}
+    Run Keyword If    ${status}==False    Run Keyword    EnterUserInformation
+    #上传gif、bmp图片
+    ${PictureName}    Set Variable    gif    bmp
+    log    循环判断两种类型的图片是否能上传成功
+    :FOR    ${index}    ${name}    IN ENUMERATE    @{PictureName}
+    \    log    ${index}${name}
+    \    checkUploadImg    ${name}    .${name}

@@ -1,0 +1,24 @@
+*** Settings ***
+Suite Setup       Login_yixun    Autotest    123456
+Suite Teardown    Close All Browsers
+Library           Selenium2Library
+Resource          ../PublicKW/Login.txt
+Resource          ../PublicRC/Comment_Home.txt
+Resource          ../PublicKW/CommentKW.txt
+Library           SendKeys
+
+*** Test Cases ***
+01.用户信息
+    #等待输入框出现
+    Wait Until Element Is Enabled    ${HomeSearch}    30s
+    #跳转到会员中心页面
+    Click Element    ${MemberCentre}
+    sleep    1s
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    10x    3s    Element Should Be Visible    ${MC_ConfirmBtn}
+    Run Keyword If    ${status}==True    log    跳转到会员中心页面成功！
+    ...    ELSE    fail    跳转失败，请定位原因
+    sleep    1s
+
+02.安全中心
+
+03.消息列表

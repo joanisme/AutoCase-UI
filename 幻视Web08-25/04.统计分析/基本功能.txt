@@ -1,0 +1,13 @@
+*** Test Cases ***
+01.作品分析
+    #定义一个随机数
+    ${random}    Evaluate    random.randint(0, 10000)    modules=random
+    log    ${random}
+
+02.用户分析
+
+03.红包分析
+
+04.围观分析
+
+05.表单分析

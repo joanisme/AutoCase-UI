@@ -1,0 +1,16 @@
+*** Settings ***
+Suite Setup       Login_yixun    Autotest    123456
+Suite Teardown    Close All Browsers
+Library           Selenium2Library
+Resource          ../PublicKW/Login.txt
+Resource          ../PublicRC/Comment_Home.txt
+Resource          ../PublicKW/CommentKW.txt
+Library           SendKeys
+Resource          ../PublicRC/Comment_EditRecognition.txt
+
+*** Test Cases ***
+001.时间限制设置
+    [Teardown]
+
+002.位置限制设置
+    [Teardown]

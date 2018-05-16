@@ -1,0 +1,9 @@
+*** Variables ***
+${EditImgIcon}    //div[@class="edit-img-icon"]    # 编辑头像
+${AddImgInfo}     //div[@class="add_img_info"]    # 上传头像
+${SumbitImg}      //div[@type="button" and text()="提交"]    # 头像提交按钮
+${Img10Id}        922b8d2f8a47dc48a712eea96c57af0a_jpg.jpg    # 图片10的id号
+${Img101Id}       8a76ebeb6b66e48fb4b915c5685c9272_jpg.jpg    # 图片101的id号
+${UpgradeRenew}    //a[@class="confirmBtn" and text()="升级或续期"]    # 升级或续期按钮
+${MemberService}    //div[@class="content-item" and text()="增值服务"]    # 升级或续期界面
+${CloseIcon}      //span[@class="icon-close" ]    # 弹窗的关闭按钮

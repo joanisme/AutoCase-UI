@@ -1,0 +1,112 @@
+*** Settings ***
+Suite Setup       Login_yixun    Autotest    123456
+Suite Teardown    Close All Browsers
+Library           Selenium2Library
+Resource          ../PublicKW/Login.txt
+Resource          ../PublicRC/Comment_Home.txt
+Resource          ../PublicKW/CommentKW.txt
+Library           SendKeys
+Library           Collections
+
+*** Test Cases ***
+01.概述中的页面跳转
+    [Documentation]    2017-11-20
+    #进入【使用帮助-概述】界面
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    3x    2s    Element Should Be Visible    //div[@class="head" and text()="概述"]
+    Run Keyword If    ${status}==False    Run Keyword    EnterUsingHelp
+    #点击更多SDK访问链接地址
+    Click Element    //a[@href="http://developer.idealsee.com"]
+    #获得窗口的title
+    ${titles}    Get Window Titles
+    ${titles2}    Get From List    ${titles}    1
+    ${titles1}    Get From List    ${titles}    0
+    #切换到第二个窗口
+    Select Window    title=${titles2}
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    10x    3s    Element Should Be Visible    //a[@class="navbar-brand"]
+    ...    #开发者网站
+    Run Keyword If    ${status}==True    log    打开开发者网站 成功！
+    ...    ELSE    fail    跳转失败，请定位原因
+    #返回第一个窗口，并校验
+    Select Window    title=${titles1}
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    10x    3s    Element Should Be Visible    //div[@class="head" and text()="概述"]
+    Run Keyword If    ${status}==True    log    跳转到会员中心页面成功！
+    ...    ELSE    fail    跳转失败，请定位原因
+
+02.Unity模型制作导出规范的文件下载
+    #进入【使用帮助-概述】界面
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    3x    2s    Element Should Be Visible    //div[@class="head" and text()="概述"]
+    Run Keyword If    ${status}==False    Run Keyword    EnterUsingHelp
+    #点击更多SDK访问链接地址
+
+03.模型交互文件配置的文件下载
+
+04.常见问题解答页面跳转
+    [Documentation]    2017-11-20
+    #进入【使用帮助-概述】界面
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    3x    2s    Element Should Be Visible    //div[@class="head" and text()="概述"]
+    Run Keyword If    ${status}==False    Run Keyword    EnterUsingHelp
+    ####
+    Click Element    //a[text()="常见问题解答"]
+    Wait Until Element Is Visible    //div[@class="head" and text()="常见问题解答"]    30s
+    #点击【识别图片规范要求】链接
+    Click Element    //a[text()="识别图片规范要求"]
+    sleep    1s
+    #跳转到对应的页面
+    Wait Until Element Is Visible    //div[@class="head" and text()="识别图片规范要求"]    30s
+    ####
+    Click Element    //a[text()="常见问题解答"]
+    Wait Until Element Is Visible    //div[@class="head" and text()="常见问题解答"]    30s
+    #点击【AR目标图片规范要求】链接
+    Click Element    //a[text()="AR目标图片规范要求"]
+    sleep    1s
+    #跳转到对应的页面
+    Wait Until Element Is Visible    //div[@class="head" and text()="AR目标图片规范要求"]    30s
+    ####
+    Click Element    //a[text()="常见问题解答"]
+    Wait Until Element Is Visible    //div[@class="head" and text()="常见问题解答"]    30s
+    #点击【识别图片规范要求】链接
+    Click Element    //a[text()="识别图片规范要求"]
+    sleep    1s
+    #跳转到对应的页面
+    Wait Until Element Is Visible    //div[@class="head" and text()="识别图片规范要求"]    30s
+
+05.帮助中的菜单栏跳转
+    [Documentation]    2017-11-20
+    #进入【使用帮助-概述】界面
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    3x    2s    Element Should Be Visible    //div[@class="head" and text()="概述"]
+    Run Keyword If    ${status}==False    Run Keyword    EnterUsingHelp
+    ####
+    Click Element    //a[text()="AR目标图片规范要求"]
+    Wait Until Element Is Visible    //div[@class="head" and text()="AR目标图片规范要求"]    30s
+    ####
+    Click Element    //a[text()="AR素材内容支持及规范要求"]
+    Wait Until Element Is Visible    //div[@class="head" and text()="AR素材内容支持及规范要求"]    30s
+    ####
+    Click Element    //a[text()="FBX模型制作导出规范"]
+    Wait Until Element Is Visible    //div[@class="head" and text()="FBX模型制作导出规范"]    30s
+    ####
+    Click Element    //a[text()="Unity模型制作导出规范"]
+    Wait Until Element Is Visible    //div[@class="head" and text()="Unity模型制作规范"]    30s
+    ####
+    Click Element    //a[text()="模型交互文件配置"]
+    Wait Until Element Is Visible    //div[@class="head" and text()="模型交互文件配置"]    30s
+    ####
+    Click Element    //a[text()="透明视频制作规范"]
+    Wait Until Element Is Visible    //div[@class="head" and text()="透明视频制作规范"]    30s
+    ####
+    Click Element    //a[text()="常见问题解答"]
+    Wait Until Element Is Visible    //div[@class="head" and text()="常见问题解答"]    30s
+
+06.AR素材内容支持及规范要求--页面跳转
+    [Documentation]    2017-11-20
+    #进入【使用帮助-概述】界面
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    3x    2s    Element Should Be Visible    //div[@class="head" and text()="概述"]
+    Run Keyword If    ${status}==False    Run Keyword    EnterUsingHelp
+    ####
+    Click Element    //a[text()="AR素材内容支持及规范要求"]
+    Wait Until Element Is Visible    //div[@class="head" and text()="AR素材内容支持及规范要求"]    30s
+    #点击【《模型制作导出规范》】链接
+    Click Element    //a[text()="《模型制作导出规范》"]
+    sleep    1s
+    #跳转到对应的页面
+    Wait Until Element Is Visible    //div[@class="head" and text()="FBX模型制作导出规范"]    30s

@@ -1,0 +1,86 @@
+*** Settings ***
+Suite Setup       Login_yixun    Autotest    123456
+Suite Teardown    Close All Browsers
+Library           Selenium2Library
+Resource          ../PublicKW/Login.txt
+Resource          ../PublicRC/Comment_Home.txt
+Resource          ../PublicKW/CommentKW.txt
+Library           SendKeys
+
+*** Test Cases ***
+001.模糊搜索
+    [Documentation]    2017-10-12 \ author：李琼
+    #定义输入内容
+    ${HomeSearchText}    Set Variable    00
+    log    等待输入框出现
+    Wait Until Element Is Enabled    ${HomeSearch}    5s
+    Input Text    ${HomeSearch}    ${HomeSearchText}
+    sleep    1s
+    Click Button    ${HomeSearchButton}
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    3x    3s    Wait Until Page Does Not Contain Element    ${HomeAR_Item}
+    ...    #模糊搜索，通过判定不在搜索范围内的作品是否存在
+    Run Keyword If    ${status}==True    log    恭喜你模糊搜索成功！
+    ...    ELSE    fail    很遗憾~搜索作品不存在！
+    log    清空输入框后点击搜索，展示所有作品。
+    Clear Element Text    ${HomeSearch}
+    sleep    1s
+    Click Button    ${HomeSearchButton}
+
+002.非法字符搜索
+    [Documentation]    2017-10-12 \ author：李琼
+    #定义输入内容
+    ${HomeSearchText}    Set Variable    \#%$
+    log    等待输入框出现
+    Wait Until Element Is Enabled    ${HomeSearch}    5s
+    Input Text    ${HomeSearch}    ${HomeSearchText}
+    sleep    1s
+    Click Button    ${HomeSearchButton}
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    3x    3s    Wait Until Page Contains    暂无对应作品
+    Run Keyword If    ${status}==True    log    OK！!
+    ...    ELSE    fail    FAIL！!
+    log    清空输入框后点击搜索，展示所有作品。
+    Clear Element Text    ${HomeSearch}
+    sleep    1s
+    Click Button    ${HomeSearchButton}
+
+003.搜索不存在的作品
+    [Documentation]    2017-10-12 \ author：李琼
+    #定义输入内容
+    ${HomeSearchText}    Set Variable    不存在的作品
+    log    等待输入框出现
+    Wait Until Element Is Enabled    ${HomeSearch}    5s
+    Input Text    ${HomeSearch}    ${HomeSearchText}
+    sleep    1s
+    Click Button    ${HomeSearchButton}
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    3x    3s    Wait Until Page Contains    暂无对应作品
+    Run Keyword If    ${status}==True    log    OK！!
+    ...    ELSE    fail    FAIL！!
+    log    清空输入框后点击搜索，展示所有作品。
+    Clear Element Text    ${HomeSearch}
+    sleep    1s
+    Click Button    ${HomeSearchButton}
+
+004.图片搜索
+    [Documentation]    关键字说明： 2017-10-12 \ author：李琼
+    ...
+    ...    1.上传图片进行搜索，通过校验图片的“排序在首位+名字”来判断是否搜索出来；
+    #定义输入内容
+    ${UplodFileName}    Set Variable    AutoUI
+    log    等待输入框出现
+    Wait Until Element Is Enabled    ${HomeSearchButton}    30s
+    Click Element    ${HomeSearchCamera}
+    #上传AR作品
+    HomeSearchUploadLocalFile    ${ServerFilePath}    ${UplodFileName}    ${FileSuffix_png}
+    #点击搜索按钮
+    sleep    1s
+    Click Button    ${HomeSearchButton}
+    sleep    1s
+    Capture Page Screenshot
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    3x    3s    Wait Until Page Contains Element    //*[@id="mainNode"]/div/div[2]/div[1]/div[2]/div/div[1]/div[2]/div[1]/span[text()="${UplodFileName}"]
+    ...    #判定搜索出的作品时唯一的，且是排在第一个的。
+    Run Keyword If    ${status}==True    log    OK！!
+    ...    ELSE    fail    FAIL！!
+    log    清空输入框后点击搜索，展示所有作品。
+    Clear Element Text    ${HomeSearch}
+    sleep    1s
+    Click Button    ${HomeSearchButton}

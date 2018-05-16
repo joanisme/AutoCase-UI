@@ -1,0 +1,394 @@
+*** Settings ***
+Library           Selenium2Library
+Resource          ..//PublicRC/Comment_Create.txt
+Resource          ..//PublicKW/CommentKW.txt
+Resource          ..//PublicRC/Comment_Home.txt
+Resource          ..//PublicRC/Comment_Card.txt
+Resource          ..//PublicRC/Comment_Category.txt
+Library           SendKeys
+Resource          ../PublicRC/Comment_EditRecognition.txt
+Resource          ../PublicRC/Comment_MemberCentre.txt
+
+*** Keywords ***
+HomeUploadLocalFile
+    [Arguments]    ${Server_filepath}    ${filename}    ${file_suffix}    #文件路径 #文件名称 #文件后缀名
+    [Documentation]    2017-08-17 \ author：李琼
+    ...
+    ...    1.上传本地文件
+    #判断上传按钮是否存在，存在则点击上传按钮进行上传。
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    10x    3s    Element Should Be Visible    ${upload_button}
+    sleep    1s
+    Run Keyword If    ${status}==True    Click Element    ${upload_button}
+    sleep    1s
+    #利用SendKeys库上传本地文件
+    log    等待本地Windows弹窗出现并上传文件
+    sleep    1s
+    ${path}    Convert To Bytes    ${Server_filepath}${filename}${file_suffix}
+    Send Keys    ${path}
+    sleep    0.5s
+    Send Keys    {ENTER}
+    log    由于本地弹窗无法做校验，强制等待2S钟，如果文件太大，请延长等待时间
+    sleep    2s
+    Capture Page Screenshot
+    Input Text    //div[@class='pos-r']/input    ${filename}
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    5x    3s    Element Should Be Visible    ${SubmitButton}
+    sleep    1s
+    Run Keyword If    ${status}==True    Click Element    ${SubmitButton}
+
+CheckWorkExists
+    [Arguments]    ${HomeSearchName}    #首页搜索名称
+    [Documentation]    关键字说明：2017-08-17 \ author：李琼
+    ...
+    ...    1.判断幻视首页搜索框是否出现；
+    ...    2.输入需要查找的作品名称，进行查找；
+    ...    3.创建AR作品有延时，需要循环查找，10次循环没有找到，则创建失败；
+    ...    4.返回${status}的状态；
+    log    清空输入框再输入.
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    5x    2s    Element Should Be Visible    ${HomeSearch}
+    Run Keyword If    ${status}==True    Clear Element Text    ${HomeSearch}
+    sleep    1s
+    Input Text    ${HomeSearch}    ${HomeSearchName}
+    : FOR    ${i}    IN RANGE    3
+    \    log    ${i}
+    \    Click Button    ${HomeSearchButton}
+    \    sleep    1s
+    \    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    3x    1s    Wait Until Page Contains Element
+    \    ...    //span[@class='info-name'][text()='${HomeSearchName}']
+    \    Run Keyword If    ${status}==True    Exit For Loop
+    Return From Keyword    ${status}
+
+DeleteHomePicture
+    [Arguments]    ${HomeCreateName}
+    [Documentation]    关键字说明：2017-08-17 \ author：李琼
+    ...
+    ...    1.删除AR作品；
+    ...    2.删除完成后，校验是否删除成功；
+    log    点击作品卡片上的三角菜单
+    Click Element    ${MenuCard}
+    sleep    5s
+    log    判断删除按钮是否出现，出现则点击；
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    5x    2s    Element Should Be Visible    ${DeleteAR_Card}
+    Run Keyword If    ${status}==True    Click Element    ${DeleteAR_Card}
+    ...    ELSE    fail    删除按钮没有出现，请定位原因。
+    sleep    1s
+    log    判断删除完成后确认按钮是否出现，出现则点击提交。
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    5x    2s    Element Should Be Visible    ${DeleteSubmit_Card}
+    Run Keyword If    ${status}==True    Click Element    ${DeleteSubmit_Card}
+    ...    ELSE    fail    确认按钮没有出现，请定位原因。
+    log    校验是否删除成功
+    ${status}    CheckWorkExists    ${HomeCreateName}
+    Run Keyword If    ${status}==False    log    恭喜~删除AR作品成功！
+    ...    ELSE    fail    删除AR作品失败，请定位问题。
+
+DeleteHomeCategory
+    [Arguments]    ${CategoryName}=自动化测试    # 分类名称
+    [Documentation]    关键字说明：2017-08-18 \ author：李琼
+    ...
+    ...    1.删除指定的作品分类。
+    ...    2.弹出的删除确认框是alert类型，需要用confirm action模拟键盘输入。
+    #点击指定的分类名称,并删除
+    Click Element    xpath=//a[@class="editor-name"][text()='${CategoryName}']
+    sleep    1s
+    Click Element    xpath=//a[text()="${CategoryName}"]/../div/button/span
+    sleep    1s
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    4x    1s    Element Should Be Visible    xpath=//a[text()="${CategoryName}"]/../div/ul/li/a[text()='删除']
+    Run Keyword If    ${status}==True    Click Element    xpath=//a[text()="${CategoryName}"]/../div/ul/li/a[text()='删除']
+    sleep    2s
+    #关闭弹出的alert框
+    ${mes}    Confirm Action
+    Choose Ok On Next Confirmation    #点击确定
+    sleep    2s
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    10x    2s    Element Should Not Be Visible    xpath=//a[@class="editor-name"][text()='${CategoryName}']
+    Run Keyword If    ${status}==True    log    删除成功！
+    ...    ELSE    fail    删除失败。
+    Comment    #清空输入框后点击搜索，展示所有作品。
+    Comment    Clear Element Text    ${HomeSearch}
+    Comment    sleep    1s
+    Comment    Click Button    ${HomeSearchButton}
+
+HomeSearchUploadLocalFile
+    [Arguments]    ${Server_filepath}    ${filename}    ${file_suffix}    #文件路径 #文件名称 #文件后缀名
+    [Documentation]    2017-08-17 \ author：李琼
+    ...
+    ...    1.上传本地文件
+    #利用SendKeys库上传本地文件
+    log    等待本地Windows弹窗出现并上传文件
+    sleep    5s
+    ${path}    Convert To Bytes    ${Server_filepath}${filename}${file_suffix}
+    Send Keys    ${path}
+    sleep    1s
+    Send Keys    {ENTER}
+    log    由于本地弹窗无法做校验，强制等待2S钟，如果文件太大，请延长等待时间
+    sleep    2s
+    Capture Page Screenshot
+
+CreateNewCategory
+    [Documentation]    2017-10-12 author 李琼
+    ...
+    ...    1.定义一个随机数，创建作品分类的命名后面加上随机数，以防重名；
+    #定义一个随机数
+    ${random}    Evaluate    random.randint(0, 10000)    modules=random
+    #创建作品分类
+    Wait Until Element Is Enabled    ${CreateCategory}    15s
+    Click Element    ${CreateCategory}
+    sleep    1s
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    4x    2s    Element Should Be Visible    ${InputCategoryName}
+    Run Keyword If    ${status}==True    Input Text    ${InputCategoryName}    自动化测试${random}
+    Click Element    ${ClickButtonOK}
+    sleep    1s
+    #校验是否创建成功
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    4x    2s    Element Should Be Visible    xpath=//a[@class="editor-name" and text()="自动化测试${random}"]
+    Run Keyword If    ${status}==True    log    恭喜~新建分类成功！
+    ...    ELSE    fail    新建分类失败，请定位问题。
+    ${NewCategoryName}    Set Variable    自动化测试${random}
+    Return From Keyword    ${NewCategoryName}
+
+EnterEditHome
+    [Documentation]    2017-10-12 author 李琼
+    Comment    #定义一个随机数，后面的作品加随机数命名
+    Comment    ${random}    Evaluate    random.randint(0, 10000)    modules=random
+    Comment    #定义输入内容
+    Comment    ${UplodFileName}    Set Variable    testname
+    Comment    log    等待输入框出现
+    Comment    Wait Until Element Is Enabled    ${HomeSearchButton}    30s
+    Comment    Click Element    ${HomeSearchCamera}
+    Comment    #上传AR作品
+    Comment    HomeSearchUploadLocalFile    ${ServerFilePath}    ${UplodFileName}    ${FileSuffix_jpg}
+    Comment    #点击搜索按钮
+    Comment    sleep    1s
+    Comment    Click Button    ${HomeSearchButton}
+    Comment    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    3x    3s    Wait Until Page Contains Element
+    ...    //*[@id="mainNode"]/div/div[2]/div[1]/div[2]/div/div[1]/a[contains(@href,"59ddcf78d2a4d900070c1318")]
+    Comment    Run Keyword If    ${status}==True    log    恭喜你搜索成功！
+    ...    ELSE    fail    很遗憾~搜索作品不存在！
+    #点击编辑按钮，进入编辑AR信息界面
+    sleep    1s
+    Click Element    ${ClickEditorCoverCard}
+    sleep    1s
+    #校验是否进入编辑AR信息界面
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    5x    2s    Element Should Be Visible    ${DuckweedButton}
+    Run Keyword If    ${status}==True    log    进入编辑AR信息界面成功！
+    ...    ELSE    fail    进入编辑AR信息界面失败，请定位问题。
+    #进入【编辑识别信息】
+    sleep    1s
+    Click Element    ${EditIdentificationInformation}
+    Wait Until Keyword Succeeds    3x    2s    Element Should Be Visible    ${SetRecognitionLimit}
+
+CheckInformationExists
+    [Arguments]    ${Information}
+    #判断信息是否存在，存在则删除
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    3x    3s    Wait Until Page Contains    ${Information}
+    Run Keyword If    ${status}==True    Run Keyword    DeleteInformationExists
+
+DeleteInformationExists
+    [Arguments]    ${MaskIconDelete}    ${ExistsInformation}    # 删除按钮| 显示item没有编辑时的信息
+    #删除存在的信息
+    sleep    2s
+    Click Element    ${MaskIconDelete}
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    10x    3s    Wait Until Page Contains Element    ${DeleteConfirmationBox}
+    ...    #等待删除的弹出框出现
+    Run Keyword If    ${status}==True    Run Keyword    Click Element    ${DeleteConfirmButton}
+    ...    ELSE IF    fail    没有弹出框出现~请定位~
+    #该item是否显示
+    sleep    2s
+    Wait Until Page Contains Element    ${ExistsInformation}    30s
+
+EditInformation
+    [Arguments]    ${ButtonType}    ${InputTexFormControl}    ${inputtext}    # item | 输入框|输入的内容
+    [Documentation]    2017-10-13 author 李琼
+    ...
+    ...    1.添加信息；
+    ...    2.判断是否弹出输入框；
+    ...    3.清空输入框内容后，再输入新的内容；
+    ...    4.确定后，校验页面是否出现编辑的内容信息；
+    #点击item按钮，输入信息
+    Click Element    ${ButtonType}
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    3x    1s    Wait Until Page Contains Element    ${InputTexFormControl}
+    Run Keyword If    ${status}==True    Run Keyword    Clear Element Text    ${InputTexFormControl}
+    ...    ELSE IF    fail    没有弹出框出现~请定位~
+    sleep    1s
+    Input Text    ${InputTexFormControl}    ${inputtext}
+    #若出现搜索按钮，则先点击搜索再确定
+    ${status}    Run Keyword And Return Status    Wait Until Page Contains Element    //button[@type="button" and text()="搜索"]    2s
+    Run Keyword If    ${status}==True    Run Keyword    Click Element    //button[@type="button" and text()="搜索"]
+    sleep    1s
+    Click Element    ${AddConfirmButton}    #点击确定
+    #等待页面元素出现
+    Wait Until Page Contains    ${inputtext}    30s
+
+EditInformationLocation
+    [Arguments]    ${ButtonType}    ${InputTexFormControl}    ${inputtext}    # item | 输入框|输入的内容
+    [Documentation]    2017-10-18 author 李琼
+    ...
+    ...    1.添加信息；
+    ...    2.判断是否弹出输入框；
+    ...    3.位置导航需要选择省、区、具体街道位置等；
+    ...    4.清空输入框内容后，再输入新的内容；
+    ...    5.确定后，校验页面是否出现编辑的内容信息；
+    #点击item按钮，输入信息
+    Click Element    ${ButtonType}
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    3x    1s    Wait Until Page Contains Element    ${InputTexFormControl}
+    ...    #等待弹出框
+    Run Keyword If    ${status}==True    Run Keyword    Clear Element Text    ${InputTexFormControl}
+    ...    ELSE IF    fail    没有弹出框出现~请定位~
+    sleep    1s
+    Click Element    //select[@name="province"]
+    sleep    5s
+    focus    //select[@name="province"]
+    Execute Javascript    window.scrollTo(0, 50)
+    sleep    5s
+    Wait Until Element Is Enabled    //option[@value="四川省"]
+    sleep    2s
+    Click Element    //option[@value="四川省"]
+    sleep    5s
+    Click Element    //select[@name="city"]
+    Wait Until Element Is Enabled    //option[@value="成都市"]
+    sleep    2s
+    Click Element    //option[@value="成都市"]
+    #清空输入框，再输入内容
+    sleep    1s
+    Clear Element Text    ${InputTexFormControl}
+    sleep    1s
+    Input Text    ${InputTexFormControl}    ${inputtext}
+    #若出现搜索按钮，则先点击搜索再确定
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    2x    1s    Wait Until Page Contains Element    //button[@type="button" and text()="搜索"]
+    Run Keyword If    ${status}==True    Run Keyword    Click Element    //button[@type="button" and text()="搜索"]
+    sleep    2s
+    Click Element    ${AddConfirmButton}
+    #等待页面元素出现
+    Wait Until Page Contains    ${inputtext}    30s
+
+EditInformationShop
+    [Arguments]    ${ButtonType}    ${InputTexFormControl}    ${inputtext}    # item | 输入框|输入的内容
+    [Documentation]    2017-10-13 author 李琼
+    ...
+    ...    1.添加信息；
+    ...    2.判断是否弹出输入框；
+    ...    3.清空输入框内容后，再输入新的内容；
+    ...    4.确定后，校验页面是否出现编辑的内容信息；
+    #点击item按钮，输入信息
+    Click Element    ${ButtonType}
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    3x    1s    Wait Until Page Contains Element    ${InputTexFormControl}
+    Run Keyword If    ${status}==True    Run Keyword    Clear Element Text    ${InputTexFormControl}
+    ...    ELSE IF    fail    没有弹出框出现~请定位~
+    sleep    1s
+    Input Text    ${InputTexFormControl}    ${inputtext}
+    #若出现搜索按钮，则先点击搜索再确定
+    ${status}    Run Keyword And Return Status    Wait Until Page Contains Element    //button[@type="button" and text()="搜索"]    2s
+    Run Keyword If    ${status}==True    Run Keyword    Click Element    //button[@type="button" and text()="搜索"]
+    sleep    1s
+    Click Element    ${AddConfirmButton}    #点击确定
+    #等待页面元素出现
+    Wait Until Page does not Contain    添加导购信息    10s
+
+EditInformationVideo
+    [Arguments]    ${ButtonType}    ${AddFolderVideo}    # item | 上传视频的按钮
+    [Documentation]    2017-10-16 author 李琼
+    ...
+    ...    1.添加视频信息；
+    ...    2.先判断是否已经添加，添加则删除，再重新上传；
+    ...    3.上传的视频是本地上传，选择框是系统自带，用sendkeys实现；
+    #点击item按钮，弹出上传视频的弹出框
+    Click Element    ${ButtonType}
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    3x    1s    Wait Until Page Contains Element    ${AddFolderVideo}
+    Run Keyword If    ${status}==True    Run Keyword    Click Element    ${AddFolderVideo}
+    ...    ELSE IF    fail    没有弹出框出现~请定位~
+    sleep    1s
+    #上传本地视频
+    UploadLocalFile    ${ServerFilePath}    UITest    .mp4
+    #若出现替换按钮，说明上传视频成功，再点击提交按钮
+    ${status}    Run Keyword And Return Status    Wait Until Page Contains Element    //span[@class="replace_audio"]    60s
+    Run Keyword If    ${status}==True    Run Keyword    Click Element    //span[@class="button-item" and text()="提交"]
+    #等待页面元素出现
+    Wait Until Page does not Contain    添加视频信息    10s
+
+UploadLocalFile
+    [Arguments]    ${Server_filepath}    ${filename}    ${file_suffix}    #文件路径 #文件名称 #文件后缀名
+    [Documentation]    2017-10-16 \ author：李琼
+    ...
+    ...    1.上传本地视频
+    #利用SendKeys库上传本地文件
+    log    等待本地Windows弹窗出现并上传文件
+    sleep    5s
+    ${path}    Convert To Bytes    ${Server_filepath}${filename}${file_suffix}
+    Send Keys    ${path}
+    sleep    1s
+    Send Keys    {ENTER}
+    log    由于本地弹窗无法做校验，强制等待10s，如果文件太大，请延长等待时间
+    sleep    2s
+    Capture Page Screenshot
+
+UploadLocalImg
+    [Arguments]    ${Server_filepath}    ${filename}    ${file_suffix}    ${ImgId}    #文件路径 #文件名称 #文件后缀名#图片id
+    [Documentation]    2017-10-24 \ author：李琼
+    ...
+    ...    1.上传本地图片，通过图片id来判断是否上传成功；
+    #利用SendKeys库上传本地文件
+    log    等待本地Windows弹窗出现并上传文件
+    sleep    5s
+    ${path}    Convert To Bytes    ${Server_filepath}${filename}${file_suffix}
+    Send Keys    ${path}
+    sleep    1s
+    Send Keys    {ENTER}
+    log    由于本地弹窗无法做校验，强制等待10s，如果文件太大，请延长等待时间
+    sleep    2s
+    Capture Page Screenshot
+    #校验图片是否上传成功
+    ${status}    Run Keyword And Return Status    Wait Until Page Contains Element    //span[@class="cropper-view-box"]/img[@src="http://yixunfiles-ali.yixun.arhieason.com/${ImgId}"]    60s
+    Run Keyword If    ${status}==True    Run Keyword    Click Element    ${SumbitImg}
+    #等待页面元素出现
+    Comment    Wait Until Page Contains Element    //div[@class="user_img_cir"]/img[@src="http://yixunfiles-ali.yixun.arhieason.com/${ImgId}?x-oss-process=image/crop,w_0110,h_0110,x_0042,y_0031"]    30s
+    Wait Until Page Contains Element    //div[@class="user_img_cir"]/img[contains(@src,'${ImgId}')]    30s
+
+EnterUserInformation
+    [Documentation]    2017-11-07 author 李琼
+    ...
+    ...    1.判断是否在用户信息界面，不是则点击【会员中心】，跳转到用户信息界面；
+    #等待输入框出现
+    Wait Until Element Is Enabled    ${HomeSearch}    30s
+    #跳转到会员中心页面
+    Click Element    ${MemberCentre}
+    sleep    1s
+    #校验是否跳转成功
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    10x    3s    Element Should Be Visible    ${MC_ConfirmBtn}
+    ...    #升级或续期按钮
+    Run Keyword If    ${status}==True    log    跳转到会员中心页面成功！
+    ...    ELSE    fail    跳转失败，请定位原因
+    sleep    1s
+
+checkUploadImg
+    [Arguments]    ${filename}    ${file_suffix}    # 文件名#格式
+    [Documentation]    2017-11-08 author 李琼
+    ...
+    ...    1.校验图片格式为GIF、bmp是否支持上传；
+    #点击头像
+    Click Element    ${EditImgIcon}
+    sleep    1s
+    #等待上传头像按钮出现
+    Wait Until Element Is Enabled    ${AddImgInfo}    30s
+    Click Element    ${AddImgInfo}    #点击上传头像按钮
+    #上传本地头像大于2M
+    UploadLocalFile    ${ServerFilePath}    ${filename}    ${file_suffix}
+    #校验图片是否上传成功
+    ${status}    Run Keyword And Return Status    Wait Until Page Contains    文件类型错误    10s
+    Run Keyword If    ${status}==True    Run Keyword    Click Element    ${CloseIcon}
+    ...    ELSE    fail    不支持的头像格式上传成功，有问题！
+    #等待升级或续期按钮出现，说明关闭弹窗成功
+    Wait Until Page Contains Element    ${MC_ConfirmBtn}    10s
+    sleep    1s
+
+EnterUsingHelp
+    [Documentation]    2017-11-07 author 李琼
+    ...
+    ...    1.判断是否在用户信息界面，不是则点击【会员中心】，跳转到用户信息界面；
+    #等待输入框出现
+    Wait Until Element Is Enabled    ${HomeSearch}    30s
+    #跳转到[使用帮助]页面
+    Click Element    //a[@href="/web/resource/help"]
+    sleep    1s
+    #校验是否跳转成功
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    10x    3s    Element Should Be Visible    //div[@class="head" and text()="概述"]
+    ...    #升级或续期按钮
+    Run Keyword If    ${status}==True    log    跳转到【使用帮助】页面成功！
+    ...    ELSE    fail    跳转失败，请定位原因
+    sleep    1s

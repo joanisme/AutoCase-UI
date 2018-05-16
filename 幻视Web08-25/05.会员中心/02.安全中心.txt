@@ -1,0 +1,39 @@
+*** Settings ***
+Suite Setup       Login_yixun    Autotest    123456
+Suite Teardown    Close All Browsers
+Library           Selenium2Library
+Resource          ../PublicKW/Login.txt
+Resource          ../PublicRC/Comment_Home.txt
+Resource          ../PublicKW/CommentKW.txt
+Library           SendKeys
+
+*** Test Cases ***
+001.修改账号密码
+    #进入【用户信息】界面
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    3x    2s    Element Should Be Visible    ${MC_ConfirmBtn}
+    Run Keyword If    ${status}==False    Run Keyword    EnterUserInformation
+    #点击【安全中心】
+    Click Element    //a[@href="/web/resource/member/safe"]
+    sleep    1s
+    #判断是否跳转成功
+    Wait Until Element Is Enabled    //div[text()="修改账户密码"]    30s    #修改账户密码按钮
+    #点击【修改账户密码】
+    Click Element    //div[text()="修改账户密码"]
+    sleep    1s
+    #等待弹出框出现
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    5x    2s    Element Should Be Visible    //input[@id="old_password"]
+    ...    #旧密码输入框出现
+    Run Keyword If    ${status}==True    log    成功显示修改密码弹窗！
+    ...    ELSE    fail    没有修改密码弹窗出现，请定位！
+    #输入旧密码
+    Clear Element Text    //input[@id="old_password"]    #清空输入框
+    Input Text    //input[@id="old_password"]    liqiong
+    #输入新密码
+    sleep    1s
+    Input Text    //input[@id="password"]    liqiong123
+    #确认密码
+    Comment    sleep    1s
+    Comment    Input Text    //input[@id="password"]    liqiong123
+    ####
+    ${class_value}      Get Element Attribute     xpath=//div[text()="提交"]@class
+    Run Keyword If    ${class_value} ==True    log    成功显示修改密码弹窗！

@@ -1,0 +1,33 @@
+*** Settings ***
+Documentation     2017-08-16 \ author：李琼
+Suite Setup       Login_yixun    Autotest    123456
+Suite Teardown    Close All Browsers
+Library           Selenium2Library
+Resource          ../PublicKW/Login.txt
+Resource          ../PublicRC/Comment_Home.txt
+Resource          ../PublicKW/CommentKW.txt
+Library           SendKeys
+
+*** Test Cases ***
+01.预览
+    log    等待输入框出现
+    Wait Until Element Is Enabled    ${HomeSearch}    5s
+    Input Text    ${HomeSearch}    ${HomeSearchText}
+    sleep    1s
+    Click Button    ${HomeSearchButton}
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    3x    3s    Wait Until Page Contains Element    //a[@href="/web/layer/an/index/59ddc9bf2e5f3a000540ab28/editor"]/../../../div[@class="ar"]
+    Run Keyword If    ${status}==True    log    恭喜你搜索成功！
+    ...    ELSE    fail    很遗憾~搜索作品不存在！
+    log    点击作品卡片上的三角菜单
+    Click Element    ${MenuCard}
+    sleep    5s
+
+02.三角菜单测试
+
+03.分析
+
+04.发布
+
+05.AR效果预览
+
+06.编辑按钮

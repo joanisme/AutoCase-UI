@@ -1,0 +1,12 @@
+*** Variables ***
+${CreateCategory}    //span[@class='icon-add']    #点击添加分类
+${ClickCategoryName}    xpath=//a[@class="editor-name"][text()='${CategoryName}']    #点击自定义的分类名称
+${ClickDropdownFlag}    xpath=//a[text()="${CategoryName}"]/../div/button/span    #指定分类的小三角
+${ClickCategoryDelete}    xpath=//a[text()="${CategoryName}"]/../div/ul/li/a[text()='删除']    #点击删除按钮
+${InputCategoryName}    xpath=//input[@placeholder="请输入分类名称"]    #输入分类名称
+${ClickButtonOK}    //button[@class='btn-submit'][text()='确定']    #点击确定按钮
+${ClickCategoryInput}    //select[@class='select_cate']    # 点击作品分类的输入框
+${NewCreateCategory}    //option[@class='btn-show-add-cate']    # 创建作品中的新建分类
+${NewInputName}    //input[@class='add-cate-input']    # 创建作品中输入分类名称
+${ClickButtonSumbit}    //span[@class='btn-add-submit']    # 新建作品分类名称后，点击确定
+${CloseIcon}      //span[@class='icon-close']    # 关闭新建作品的窗口

@@ -1,0 +1,31 @@
+*** Settings ***
+Suite Setup       Login_yixun    Autotest    123456
+Suite Teardown    Close All Browsers
+Library           Selenium2Library
+Resource          ../PublicKW/Login.txt
+Resource          ../PublicRC/Comment_Home.txt
+Resource          ../PublicKW/CommentKW.txt
+Library           SendKeys
+
+*** Test Cases ***
+001.系统消息/更新日志切换
+    [Documentation]    2017-11-20 author 李琼
+    ...
+    ...    1.校验切换消息列表和更新日志；
+    #进入【用户信息】界面
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    3x    2s    Element Should Be Visible    ${MC_ConfirmBtn}
+    Run Keyword If    ${status}==False    Run Keyword    EnterUserInformation
+    #点击【消息列表】
+    Click Element    //a[@href="/web/resource/member/message"]
+    sleep    1s
+    #判断是否跳转成功
+    Wait Until Element Is Enabled    //span[@class="other_news" and text()="发布成功！"]    30s    #系统信息页面
+    sleep    1s
+    #切换消息列表和更新日志
+    Click Element    //div[text()="更新日志"]    #点击更新日志
+    Wait Until Element Is Enabled    //div[@class="active" and text()="更新日志"]    5s    #更新日志页面
+    sleep    1s
+    Click Element    //div[text()="系统信息"]    #点击系统消息
+    Wait Until Element Is Enabled    //span[@class="other_news" and text()="发布成功！"]    30s    #系统信息页面
+
+002.系统消息-翻页测试

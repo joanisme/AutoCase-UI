@@ -1,0 +1,119 @@
+*** Settings ***
+Documentation     2017-08-16 \ author：李琼
+...
+...               1.登录幻视首页作为测试套；
+...               2.测试用例执行完后，关闭浏览器；
+Suite Setup       Login_yixun    Autotest    123456
+Suite Teardown    Close All Browsers
+Library           Selenium2Library
+Resource          ../PublicKW/Login.txt
+Resource          ../PublicRC/Comment_Home.txt
+Library           SendKeys
+Resource          ../PublicKW/CommentKW.txt
+Resource          ../PublicRC/Comment_EditRecognition.txt
+
+*** Test Cases ***
+001.创建AR作品中新建分类
+    [Documentation]    2017-08-25 \ author：李琼
+    ...
+    ...    1.登录到幻视首页，新建作品中去新建分类。
+    #判断是否登录到幻视首页,若不在首页，点击Hieason回到主页
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    3x    2s    Element Should Be Visible    ${CreateNewAR}
+    Run Keyword If    ${status}==False    Click Element    ${HomeMenuBrand}
+    Wait Until Keyword Succeeds    10x    3s    Element Should Be Visible    ${CreateNewAR}
+    #创建之前先判定
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    4x    2s    Element Should Be Visible    xpath=//a[@class="editor-name"][text()='分类测试01']
+    Run Keyword If    ${status}==True    Run Keyword    DeleteHomeCategory    分类测试01
+    sleep    1s
+    #点击创建AR作品按钮
+    Sleep    2s
+    Click Element    ${CreateNewAR}
+    #判断作品分类是否存在，存在则点击。
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    4x    2s    Element Should Be Visible    //select[@class='select_cate']
+    Sleep    3s
+    Run Keyword If    ${status}==True    Click Element    ${ClickCategoryInput}
+    ...    ELSE    fail    作品输入框不存在，请定位问题。
+    Sleep    2s
+    log    等待“新建分类”出现
+    Wait Until Element Is Visible    ${NewCreateCategory}    30s
+    Click Element    ${NewCreateCategory}
+    Sleep    2
+    Input Text    ${NewInputName}    分类测试01
+    Sleep    2
+    Click Element    ${ClickButtonSumbit}
+    Sleep    2
+    Click Element    ${CloseIcon}
+    Sleep    5
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    4x    2s    Element Should Be Visible    xpath=//a[@class="editor-name"][text()='分类测试01']
+    Run Keyword If    ${status}==True    log    恭喜~新建分类成功！
+    ...    ELSE    fail    新建分类失败，请定位问题。
+    [Teardown]
+
+002.分类的切换
+    [Documentation]    2017-09-15 \ author：李琼
+    ...
+    ...    1.分类的切换，查看作品是否添加在该类下面；
+    [Teardown]
+
+003.隐藏分类菜单
+    [Documentation]    2017-10-09 \ author：李琼
+    ...
+    ...    1.隐藏分类按钮是否生效；
+    #判断是否登录到幻视首页,若不在首页，点击Hieason回到主页
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    3x    2s    Element Should Be Visible    ${CreateNewAR}
+    Run Keyword If    ${status}==False    Click Element    ${HomeMenuBrand}
+    Wait Until Keyword Succeeds    10x    3s    Element Should Be Visible    ${CreateNewAR}
+    #点击隐藏分类按钮
+    Click Element    xpath=//div[@class="hidden-aside"]
+    sleep    1s
+    #校验是否隐藏成功
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    4x    2s    Element Should Not Be Visible    xpath=//a[@class="editor-name"][text()='全部分类']
+    Run Keyword If    ${status}==True    log    恭喜~隐藏分类成功！
+    ...    ELSE    fail    隐藏分类失败，请定位问题。
+    sleep    1s
+    #校验显示分类菜单
+    [Teardown]
+
+004.重命名分类
+    [Documentation]    2017-10-09 \ author：李琼
+    ...
+    ...    1.校验重命名分类是否生效；
+    #判断是否登录到幻视首页,若不在首页，点击Hieason回到主页
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    3x    2s    Element Should Be Visible    ${CreateNewAR}
+    Run Keyword If    ${status}==False    Click Element    ${HomeMenuBrand}
+    Wait Until Keyword Succeeds    10x    3s    Element Should Be Visible    ${CreateNewAR}
+    #创建之前先判定
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    4x    2s    Element Should Be Visible    ${ClickCategoryName}
+    Run Keyword If    ${status}==True    Run Keyword    DeleteHomeCategory    自动化测试
+    sleep    1s
+    #创建作品分类
+    Wait Until Element Is Enabled    ${CreateCategory}    15s
+    Click Element    ${CreateCategory}
+    sleep    1s
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    4x    2s    Element Should Be Visible    ${InputCategoryName}
+    Run Keyword If    ${status}==True    Input Text    ${InputCategoryName}    自动化测试
+    Click Element    ${ClickButtonOK}
+    sleep    1s
+    #校验是否创建成功
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    4x    2s    Element Should Be Visible    xpath=//a[@class="editor-name"][text()='自动化测试']
+    Run Keyword If    ${status}==True    log    恭喜~新建分类成功！
+    ...    ELSE    fail    新建分类失败，请定位问题。
+    #重命名分类名称
+    ${CategoryName}    Set Variable    自动化测试
+    Click Element    xpath=//a[@class="editor-name"][text()='${CategoryName}']
+    sleep    1s
+    Click Element    xpath=//a[text()="${CategoryName}"]/../div/button/span
+    sleep    1s
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    4x    1s    Element Should Be Visible    xpath=//a[text()="${CategoryName}"]/../div/ul/li/a[text()='重命名']
+    Run Keyword If    ${status}==True    Click Element    xpath=//a[text()="${CategoryName}"]/../div/ul/li/a[text()='重命名']
+    sleep    2s
+    log    等待输入框出现
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    4x    2s    Element Should Be Visible    ${InputCategoryName}
+    Run Keyword If    ${status}==True    Input Text    ${InputCategoryName}    testing
+    Click Element    ${ClickButtonOK}
+    sleep    1s
+    #校验是否创建成功
+    ${status}    Run Keyword And Return Status    Wait Until Keyword Succeeds    4x    2s    Element Should Be Visible    xpath=//a[@class="editor-name"][text()='自动化测试testing']
+    Run Keyword If    ${status}==True    log    恭喜~重命名分类成功！
+    ...    ELSE    fail    重命名失败，请定位问题。
+    [Teardown]
